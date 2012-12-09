@@ -17,11 +17,11 @@ By default gamera will use the whole screen to display graphics. You can restric
 Moving the camera around
 ------------------------
 
-You can move the camera around by using `lookAt`:
+You can move the camera around by using `setPosition`:
 
-    gamera.lookAt(100, 200)
+    gamera.setPosition(100, 200)
 
-`lookAt` takes into account the current window boundaries and world boundaries, and tries to keep the window inside the world as much as it can. This means that if you try to look at something very close to the left border of the world, for example, the camera will not "scroll" to show empty space.
+`setPosition` takes into account the current window boundaries and world boundaries, and tries to keep the window inside the world as much as it can. This means that if you try to look at something very close to the left border of the world, for example, the camera will not "scroll" to show empty space.
 
 You can also zoom in and zoom out. This is done using the `setScale` method. When given two parameters, the first one is the x-scale, while the second one is the y-scale. If you pass only one parameter, it's used for both x and y. The default scale is 1.0 in both axis.
 
