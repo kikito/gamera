@@ -3,7 +3,11 @@ local gamera = {}
 
 -- Private attributes and methods
 
-local world, window, position
+local world, window, position, scale
+
+local function max(a,b)
+  return a > b and a or b
+end
 
 local function checkNumber(value, name)
   if type(value) ~= 'number' then error(name .. " must be a number") end
@@ -22,14 +26,18 @@ local function checkAABB(l,t,w,h)
   checkPositiveNumber(h, "h")
 end
 
-local function checkCoord(x,y)
-  checkNumber(x, "x")
-  checkNumber(y, "y")
+local function clamp(x, minX, maxX)
+  if maxX < minX then return (minX-maxX)*.5 end
+  return x < minX and minX or (x>maxX and maxX or x)
 end
 
-local function clamp(x, min, max)
-  if max < min then return (min-max)*.5 end
-  return x < min and min or (x>max and max or x)
+local function clampPosition()
+  local wl,wt,ww,wh = world.l, world.t, world.w, world.h
+  local sx,sy = scale.x, scale.y
+  local w2,h2 = window.w*0.5/sx, window.h*0.5/sy
+
+  position.x, position.y = clamp(position.x, wl + w2, wl + ww - w2),
+                           clamp(position.y, wt + h2, wt + wh - h2)
 end
 
 
@@ -55,23 +63,38 @@ end
 
 function gamera.getVisible()
   local w,h = window.w, window.h
-  local w2,h2 = w*0.5, h*0.5
+  local sx,sy = scale.x, scale.y
 
-  return position.x - w2, position.y - h2, w, h
+  local w2,h2 = w*0.5/sx, h*0.5/sy
+
+  return position.x - w2, position.y - h2, w/sx, h/sy
 end
 
 function gamera.setPosition(x,y)
-  checkCoord(x,y)
+  checkNumber(x, "x")
+  checkNumber(y, "y")
 
-  local wl,wt,ww,wh = world.l, world.t, world.w, world.h
-  local w2,h2 = window.w*0.5, window.h*0.5
-
-  position.x, position.y = clamp(x, wl + w2, wl + ww - w2),
-                           clamp(y, wt + h2, wt + wh - h2)
+  position.x, position.y = x,y
+  clampPosition()
 end
 
 function gamera.getPosition()
   return position.x, position.y
+end
+
+function gamera.setScale(sx, sy)
+  checkPositiveNumber(sx, "sx")
+  sy = sy or sx
+  checkPositiveNumber(sy, "sy")
+  local minX, minY = window.w/world.w, window.h/world.h
+
+  scale.x, scale.y = max(minX, sx), max(minY, sy)
+
+  clampPosition()
+end
+
+function gamera.getScale()
+  return scale.x, scale.y
 end
 
 function gamera.draw(f)
@@ -81,6 +104,7 @@ function gamera.draw(f)
     love.graphics.push()
       local l,t,w,h = gamera.getVisible()
       love.graphics.translate(-l,-t)
+      love.graphics.scale(scale.x, scale.y)
       f(l,t,w,h)
 
     love.graphics.pop()
@@ -89,9 +113,10 @@ function gamera.draw(f)
 end
 
 function gamera.reset()
-  world  = {}
-  window = {l=0,t=0, w=love.graphics.getWidth(), h=love.graphics.getHeight()}
+  world    = {}
+  window   = {l=0,t=0, w=love.graphics.getWidth(), h=love.graphics.getHeight()}
   position = {x = window.w/2, y = window.h/2}
+  scale    = {x=1, y=1}
 end
 
 

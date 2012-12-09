@@ -93,6 +93,60 @@ describe('gamera', function()
     end)
   end)
 
+  describe("scale", function()
+    before_each(function()
+      gamera.setWorld(0,0,1000,1000)
+      gamera.setWindow(0,0,100,100)
+      gamera.setPosition(500,400)
+    end)
+
+    it("defaults to 1.0,1.0", function()
+      assert.same({1,1}, {gamera.getScale()})
+    end)
+
+    it('requires at least one positive number', function()
+      assert.error(function() gamera.setScale() end)
+      assert.error(function() gamera.setScale('foo') end)
+      assert.error(function() gamera.setScale(0) end)
+      assert.error(function() gamera.setScale(-1) end)
+      assert.Not.error(function() gamera.setScale(1) end)
+      assert.Not.error(function() gamera.setScale(1,1) end)
+      assert.error(function() gamera.setScale(1,-1) end)
+    end)
+
+    it('can be set and read with 1 or 2 parameters', function()
+      gamera.setScale(2)
+      assert.same({2,2}, {gamera.getScale()})
+
+      gamera.setScale(3,4)
+      assert.same({3,4}, {gamera.getScale()})
+    end)
+
+    it('modifies the visible area', function()
+      gamera.setScale(2)
+      assert.same({475,375,50,50}, {gamera.getVisible()})
+
+      gamera.setScale(0.5)
+      assert.same({400,300,200,200}, {gamera.getVisible()})
+    end)
+
+    it('clamps positioning', function()
+      gamera.setPosition(200,1000)
+      assert.same({200,950}, {gamera.getPosition()})
+
+      gamera.setScale(0.5)
+      assert.same({200,900}, {gamera.getPosition()})
+    end)
+
+    it('hits its limit when windowsize=worldsize', function()
+      gamera.setScale(0.00001,1)
+      assert.same({0.1, 1}, {gamera.getScale()}) -- world=1000,win=100.
+
+      gamera.setScale(1,0.000001)
+      assert.same({1, 0.1}, {gamera.getScale()}) -- world=1000,win=100.
+    end)
+  end)
+
   describe(".draw", function()
     before_each(function()
       gamera.setWorld(0,0,1000,1000)
@@ -130,6 +184,13 @@ describe('gamera', function()
       spy.on(love.graphics, "translate")
       gamera.draw(function() end)
       assert.spy(love.graphics.translate).was_called_with(-300,-150)
+    end)
+
+    it("scales as expected", function()
+      gamera.setScale(0.5)
+      spy.on(love.graphics, "scale")
+      gamera.draw(function() end)
+      assert.spy(love.graphics.scale).was_called_with(0.5, 0.5)
     end)
   end)
 end)
