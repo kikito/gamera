@@ -50,17 +50,18 @@ end
 -- main love functions
 
 function love.load()
-  -- adapt gamera to the dimensions that the world has
-  gamera.setBoundary(0, 0, world.width, world.height)
+  gamera.setWorld(0, 0, world.width, world.height)
+  gamera.setWindow(10,10,580,580)
 end
 
 function love.update(dt)
   movePlayer(dt)
+  -- center the view on the player first
+  gamera.setPosition(player.x, player.y)
 end
 
 function love.draw()
-  -- center the view on the player first
-  gamera.lookAt(player.x, player.y)
+  love.graphics.rectangle('line', gamera.getWindow())
   -- then draw camera-dependent stuff, including the player
   gamera.draw(function(l,t,w,h)
     drawPlayer()
