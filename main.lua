@@ -1,34 +1,6 @@
 local gamera = require 'gamera'
 
--- player data/functions
-
-local player = {
-  x       = 100,
-  y       = 100,
-  width   = 50,
-  height  = 75,
-  speed   = 400
-}
-
-local isDown = love.keyboard.isDown
-
-local function movePlayer(dt)
-  local dx = isDown('left') and -1 or (isDown('right') and 1 or 0)
-  local dy = isDown('up') and -1 or (isDown('down') and 1 or 0)
-  player.x = player.x + dx * dt * player.speed
-  player.y = player.y + dy * dt * player.speed
-end
-
-local function drawPlayer()
-  love.graphics.rectangle('line',
-                          player.x - player.width / 2,
-                          player.y - player.height / 2,
-                          player.width,
-                          player.height)
-end
-
 -- world data & functions
-
 local world = {
   width   = 5000,
   height  = 3000,
@@ -36,16 +8,83 @@ local world = {
   columns = 20
 }
 
+
 local function drawWorld()
-  local columnWidth = world.width / world.columns
-  for x=1, world.columns do
-    love.graphics.line(x*columnWidth, 0, x*columnWidth, world.height)
-  end
-  local rowHeight = world.height / world.rows
-  for y=1, world.rows do
-    love.graphics.line(0, y*rowHeight, world.width, y*rowHeight)
+  local w = world.width / world.columns
+  local h = world.height / world.rows
+  for y=0, world.rows-1 do
+    for x=0, world.columns-1 do
+      if (x + y) % 2 == 0 then
+        love.graphics.setColor(155,155,155)
+      else
+        love.graphics.setColor(200,200,200)
+      end
+      love.graphics.rectangle("fill", x*w, y*h, w, h)
+    end
   end
 end
+
+-- target data and functions
+local target = {
+  x = 500,
+  y = 500
+}
+
+local function updateTarget(dt)
+  target.x, target.y = gamera.toWorld(love.mouse.getPosition())
+end
+
+local function drawTarget()
+  love.graphics.setColor(255,255,0)
+  love.graphics.circle("fill", target.x, target.y, 40)
+end
+
+-- player data/functions
+
+local player = {
+  x         = 200,
+  y         = 200,
+  width     = 100,
+  height    = 100
+}
+
+local isDown = love.keyboard.isDown
+
+local function makeZero(x,minX,maxX)
+  if x > maxX or x < minX then return x end
+  return 0
+end
+
+local function updatePlayer(dt)
+  local dx,dy = makeZero(target.x - player.x, -5,5),
+                makeZero(target.y - player.y, -5,5)
+  player.x = player.x + 2 * dx * dt
+  player.y = player.y + 2 * dy * dt
+end
+
+local function drawPlayer()
+  love.graphics.setColor(0,255,0)
+  love.graphics.rectangle('fill',
+                          player.x - player.width / 2,
+                          player.y - player.height / 2,
+                          player.width,
+                          player.height)
+end
+
+
+-- camera functions
+local scale = 1
+
+local function updateCamera(dt)
+  gamera.setPosition(player.x, player.y)
+
+  local scaleFactor = isDown('z') and -0.8 or (isDown('x') and 0.8 or 0)
+  local scale = gamera.getScale()
+  gamera.setScale(scale + scaleFactor * dt)
+end
+
+
+-- target functions
 
 -- main love functions
 
@@ -55,20 +94,17 @@ function love.load()
 end
 
 function love.update(dt)
-  movePlayer(dt)
-  -- center the view on the player first
-  gamera.setPosition(player.x, player.y)
+  updatePlayer(dt)
+  updateCamera(dt)
+  updateTarget(dt)
 end
 
 function love.draw()
-  love.graphics.rectangle('line', gamera.getWindow())
-  -- then draw camera-dependent stuff, including the player
   gamera.draw(function(l,t,w,h)
-    drawPlayer()
     drawWorld()
+    drawPlayer()
+    drawTarget()
   end)
-  -- this is outside of gamera.draw so it is not affected by the scroll
-  love.graphics.print("gamera demo. Move with arrows, exit with esc.", 10, 10)
 end
 
 -- exit with esc
