@@ -8,7 +8,6 @@ local world = {
   columns = 20
 }
 
-
 local function drawWorld()
   local w = world.width / world.columns
   local h = world.height / world.rows
@@ -73,14 +72,17 @@ end
 
 
 -- camera functions
-local scale = 1
-
 local function updateCamera(dt)
   gamera.setPosition(player.x, player.y)
 
   local scaleFactor = isDown('z') and -0.8 or (isDown('x') and 0.8 or 0)
   local scale = gamera.getScale()
   gamera.setScale(scale + scaleFactor * dt)
+
+
+  local angleFactor = isDown('a') and -0.8 or (isDown('s') and 0.8 or 0)
+  local angle = gamera.getAngle()
+  gamera.setAngle(angle + angleFactor * dt)
 end
 
 

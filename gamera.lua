@@ -3,7 +3,7 @@ local gamera = {}
 
 -- Private attributes and methods
 
-local world, window, position, scale
+local world, window, position, scale, angle
 
 local function max(a,b)
   return a > b and a or b
@@ -33,7 +33,8 @@ end
 
 local function clampPosition()
   local wl,wt,ww,wh = world.l, world.t, world.w, world.h
-  local w2,h2 = window.w*0.5/scale, window.h*0.5/scale
+  local w,h   = window.w, window.h
+  local w2,h2 = w/(2*scale), h/(2*scale)
 
   position.x, position.y = clamp(position.x, wl + w2, wl + ww - w2),
                            clamp(position.y, wt + h2, wt + wh - h2)
@@ -65,10 +66,14 @@ end
 function gamera.setScale(newScale)
   checkPositiveNumber(newScale, "newScale")
   local minX, minY = window.w/world.w, window.h/world.h
-
   scale = math.max(minX, minY, newScale)
 
   clampPosition()
+end
+
+function gamera.setAngle(newAngle)
+  checkNumber(newAngle, "newAngle")
+  angle = newAngle
 end
 
 function gamera.getWorld()
@@ -87,6 +92,10 @@ function gamera.getScale()
   return scale
 end
 
+function gamera.getAngle()
+  return angle
+end
+
 function gamera.getVisible()
   local w,h   = window.w, window.h
   local w2,h2 = w/(2*scale), h/(2*scale)
@@ -99,9 +108,12 @@ function gamera.draw(f)
 
   love.graphics.push()
 
-    love.graphics.scale(scale, scale)
-    love.graphics.translate( window.w/(2*scale) + window.l - position.x,
-                             window.h/(2*scale) + window.t - position.y)
+    love.graphics.scale(scale)
+
+    love.graphics.translate(window.w/(2*scale), window.h/(2*scale))
+    love.graphics.rotate(-angle)
+    love.graphics.translate(window.l - position.x, window.t - position.y)
+
     f(gamera.getVisible())
 
   love.graphics.pop()
@@ -110,8 +122,12 @@ function gamera.draw(f)
 end
 
 function gamera.toWorld(x,y)
-  return (x - window.w/2) / scale + position.x - window.l,
-         (y - window.h/2) / scale + position.y - window.t
+  local c, s   = math.cos(angle), math.sin(angle)
+  x,y = (x - window.w/2)/scale, (y - window.h/2)/scale
+  x,y = c*x - s*y, s*x + c*y
+
+  return x + position.x - window.l,
+         y + position.y - window.t
 end
 
 function gamera.reset()
@@ -119,6 +135,7 @@ function gamera.reset()
   window   = {l=0,t=0, w=love.graphics.getWidth(), h=love.graphics.getHeight()}
   position = {x = window.w/2, y = window.h/2}
   scale    = 1
+  angle    = 0
 end
 
 gamera.reset()
