@@ -4,7 +4,7 @@ local gamera = {}
 -- Private attributes and methods
 
 local gameraMt = {__index = gamera}
-local max = math.max
+local max, abs = math.max, math.abs
 
 
 local function checkNumber(value, name)
@@ -32,25 +32,19 @@ local function clamp(x, minX, maxX)
 end
 
 local function clampPosition(self)
-  local invScale = self.invScale
   local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
-  local w2,h2 = self.w2/invScale, self.h2/invScale
+  local _,_,w,h = self:getVisible()
+  local w2,h2 = w*0.5, h*0.5
 
   self.x, self.y = clamp(self.x, wl + w2, wl + ww - w2),
                    clamp(self.y, wt + h2, wt + wh - h2)
 end
 
 local function clampScale(self)
-  local minX, minY = self.w/self.ww, self.h/self.wh
+  local _,_,w,h = self:getVisible()
+  local minX, minY = w/self.ww, h/self.wh
   self.scale       = max(minX, minY, self.scale)
 end
-
-local function rotatedAABB(l,t,w,h, sin,cos)
-  local cx,cy  = l+w*0.5, t+h*0.5
-  local nw, nh = cos*w + sin*h, sin*w + cos*h
-  return cx - nw*0.5, cy - nh*0.5, nh, nw
-end
-
 
 -- Public interface
 
@@ -127,10 +121,10 @@ function gamera:getAngle()
 end
 
 function gamera:getVisible()
-  local invScale, sin, cos = self.invScale, math.abs(self.sin), math.abs(self.cos)
+  local invScale, sin, cos = self.invScale, abs(self.sin), abs(self.cos)
   local w,h = self.w * invScale, self.h * invScale
   local w,h = cos*w + sin*h, sin*w + cos*h
-  return self.x - w/2, self.y - h/2, w, h
+  return self.x - w*0.5, self.y - h*0.5, w, h
 end
 
 function gamera:draw(f)
