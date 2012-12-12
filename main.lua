@@ -14,12 +14,27 @@ local function makeZero(x,minX,maxX)
   return 0
 end
 
+local function max(a,b)
+  return a > b and a or b
+end
+
+local function min(a,b)
+  return a < b and a or b
+end
+
 -- world functions
-local function drawWorld()
+
+local function drawWorld(cl,ct,cw,ch)
   local w = world.w / world.columns
   local h = world.h / world.rows
-  for y=0, world.rows-1 do
-    for x=0, world.columns-1 do
+
+  local minX = max(math.floor(cl/w), 0)
+  local maxX = min(math.floor((cl+cw)/w), world.columns-1)
+  local minY = max(math.floor(ct/h), 0)
+  local maxY = min(math.floor((ct+ch)/h), world.rows-1)
+
+  for y=minY, maxY do
+    for x=minX, maxX do
       if (x + y) % 2 == 0 then
         love.graphics.setColor(155,155,155)
       else
@@ -92,13 +107,13 @@ end
 
 function love.draw()
   cam1:draw(function(l,t,w,h)
-    drawWorld()
+    drawWorld(l,t,w,h)
     drawPlayer()
     drawTarget()
   end)
 
   cam2:draw(function(l,t,w,h)
-    drawWorld()
+    drawWorld(l,t,w,h)
     drawPlayer()
     drawTarget()
     love.graphics.setColor(0,0,255,100)
