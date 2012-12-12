@@ -6,7 +6,6 @@ local gamera = {}
 local gameraMt = {__index = gamera}
 local max, abs = math.max, math.abs
 
-
 local function checkNumber(value, name)
   if type(value) ~= 'number' then
     error(name .. " must be a number (was: " .. tostring(value) .. ")")
