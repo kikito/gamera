@@ -8,6 +8,7 @@ local world, player, target, cam1, cam2
 
 -- auxiliary functions
 local isDown = love.keyboard.isDown
+local floor = math.floor
 
 local function makeZero(x,minX,maxX)
   if x > maxX or x < minX then return x end
@@ -28,10 +29,10 @@ local function drawWorld(cl,ct,cw,ch)
   local w = world.w / world.columns
   local h = world.h / world.rows
 
-  local minX = max(math.floor(cl/w), 0)
-  local maxX = min(math.floor((cl+cw)/w), world.columns-1)
-  local minY = max(math.floor(ct/h), 0)
-  local maxY = min(math.floor((ct+ch)/h), world.rows-1)
+  local minX = max(floor(cl/w), 0)
+  local maxX = min(floor((cl+cw)/w), world.columns-1)
+  local minY = max(floor(ct/h), 0)
+  local maxY = min(floor((ct+ch)/h), world.rows-1)
 
   for y=minY, maxY do
     for x=minX, maxX do
