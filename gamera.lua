@@ -4,8 +4,7 @@ local gamera = {}
 -- Private attributes and methods
 
 local gameraMt = {__index = gamera}
-local lg = love.graphics
-local sin,cos,max = math.sin, math.cos, math.max
+local max = math.max
 
 
 local function checkNumber(value, name)
@@ -33,9 +32,9 @@ local function clamp(x, minX, maxX)
 end
 
 local function clampPosition(self)
-  local scale = self.scale
+  local invScale = self.invScale
   local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
-  local w2,h2 = self.w2/scale, self.h2/scale
+  local w2,h2 = self.w2/invScale, self.h2/invScale
 
   self.x, self.y = clamp(self.x, wl + w2, wl + ww - w2),
                    clamp(self.y, wt + h2, wt + wh - h2)
@@ -46,13 +45,25 @@ local function clampScale(self)
   self.scale       = max(minX, minY, self.scale)
 end
 
+local function rotatedAABB(l,t,w,h, sin,cos)
+  local cx,cy  = l+w*0.5, t+h*0.5
+  local nw, nh = cos*w + sin*h, sin*w + cos*h
+  return cx - nw*0.5, cy - nh*0.5, nh, nw
+end
+
 
 -- Public interface
 
 function gamera.new(l,t,w,h)
 
-  local cam = setmetatable({ x=0, y=0, scale=1, angle=0, l=0, t=0, w=lg.getWidth(), h=lg.getHeight() }, gameraMt)
-  cam.w2, cam.h2 = cam.w * 0.5, cam.h * 0.5
+  local sw,sh = love.graphics.getWidth(), love.graphics.getHeight()
+
+  local cam = setmetatable({
+    x=0, y=0,
+    scale=1, invScale=1,
+    angle=0, sin=math.sin(0), cos=math.cos(0),
+    l=0, t=0, w=sw, h=sh, w2=sw/2, h2=sh/2
+  }, gameraMt)
   cam:setWorld(l,t,w,h)
   return cam
 end
@@ -79,15 +90,18 @@ end
 
 function gamera:setScale(scale)
   checkNumber(scale, "scale")
-  self.scale = scale
 
+  self.scale = scale
   clampScale(self)
+  self.invScale = 1/self.scale
+
   clampPosition(self)
 end
 
 function gamera:setAngle(angle)
   checkNumber(angle, "angle")
   self.angle = angle
+  self.cos, self.sin = math.cos(angle), math.sin(angle)
 
   clampPosition(self)
 end
@@ -113,20 +127,20 @@ function gamera:getAngle()
 end
 
 function gamera:getVisible()
-  local scale = self.scale
-  local w2,h2 = self.w2/scale, self.h2/scale
-
-  return self.x - w2, self.y - h2, self.w/scale, self.h/scale
+  local invScale, sin, cos = self.invScale, math.abs(self.sin), math.abs(self.cos)
+  local w,h = self.w * invScale, self.h * invScale
+  local w,h = cos*w + sin*h, sin*w + cos*h
+  return self.x - w/2, self.y - h/2, w, h
 end
 
 function gamera:draw(f)
   love.graphics.setScissor(self:getWindow())
 
   love.graphics.push()
-    local scale = self.scale
-    love.graphics.scale(scale)
+    local invScale = self.invScale
+    love.graphics.scale(self.scale)
 
-    love.graphics.translate((self.w2 + self.l)/scale, (self.h2+self.t)/scale)
+    love.graphics.translate((self.w2 + self.l) * invScale, (self.h2+self.t) * invScale)
     love.graphics.rotate(-self.angle)
     love.graphics.translate(-self.x, -self.y)
 
@@ -138,10 +152,9 @@ function gamera:draw(f)
 end
 
 function gamera:toWorld(x,y)
-  local angle, scale = self.angle, self.scale
-  local c, s         = cos(angle), sin(angle)
-  x,y = (x - self.w2 - self.l)/scale, (y - self.h2 - self.t)/scale
-  x,y = c*x - s*y, s*x + c*y
+  local invScale, sin, cos = self.invScale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) * invScale, (y - self.h2 - self.t) * invScale
+  x,y = cos*x - sin*y, sin*x + cos*y
   return x + self.x, y + self.y
 end
 
