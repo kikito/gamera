@@ -3,19 +3,20 @@ local gamera = {}
 
 -- Private attributes and methods
 
-local world, window, position, scale, angle
+local gameraMt = {__index = gamera}
+local lg = love.graphics
+local sin,cos,max = math.sin, math.cos, math.max
 
-local function max(a,b)
-  return a > b and a or b
-end
 
 local function checkNumber(value, name)
-  if type(value) ~= 'number' then error(name .. " must be a number") end
+  if type(value) ~= 'number' then
+    error(name .. " must be a number (was: " .. tostring(value) .. ")")
+  end
 end
 
 local function checkPositiveNumber(value, name)
   if type(value) ~= 'number' or value <=0 then
-    error(name .. " must be a postive number")
+    error(name .. " must be a positive number (was: " .. tostring(value) ..")")
   end
 end
 
@@ -31,114 +32,118 @@ local function clamp(x, minX, maxX)
   return x < minX and minX or (x>maxX and maxX or x)
 end
 
-local function clampPosition()
-  local wl,wt,ww,wh = world.l, world.t, world.w, world.h
-  local w,h   = window.w, window.h
-  local w2,h2 = w/(2*scale), h/(2*scale)
+local function clampPosition(self)
+  local scale = self.scale
+  local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
+  local w2,h2 = self.w2/scale, self.h2/scale
 
-  position.x, position.y = clamp(position.x, wl + w2, wl + ww - w2),
-                           clamp(position.y, wt + h2, wt + wh - h2)
+  self.x, self.y = clamp(self.x, wl + w2, wl + ww - w2),
+                   clamp(self.y, wt + h2, wt + wh - h2)
+end
+
+local function clampScale(self)
+  local minX, minY = self.w/self.ww, self.h/self.wh
+  self.scale       = max(minX, minY, self.scale)
 end
 
 
 -- Public interface
 
-function gamera.setWorld(l,t,w,h)
-  checkAABB(l,t,w,h)
-  world.l, world.t, world.w, world.h = l,t,w,h
-  clampPosition()
+function gamera.new(l,t,w,h)
+
+  local cam = setmetatable({ x=0, y=0, scale=1, angle=0, l=0, t=0, w=lg.getWidth(), h=lg.getHeight() }, gameraMt)
+  cam.w2, cam.h2 = cam.w * 0.5, cam.h * 0.5
+  cam:setWorld(l,t,w,h)
+  return cam
 end
 
-function gamera.setWindow(l,t,w,h)
+function gamera:setWorld(l,t,w,h)
   checkAABB(l,t,w,h)
-  window.l, window.t, window.w, window.h = l,t,w,h
-  clampPosition()
+  self.wl, self.wt, self.ww, self.wh = l,t,w,h
+  clampPosition(self)
 end
 
-function gamera.setPosition(x,y)
+function gamera:setWindow(l,t,w,h)
+  checkAABB(l,t,w,h)
+  self.l, self.t, self.w, self.h, self.w2, self.h2 = l,t,w,h, w*0.5, h*0.5
+  clampPosition(self)
+end
+
+function gamera:setPosition(x,y)
   checkNumber(x, "x")
   checkNumber(y, "y")
 
-  position.x, position.y = x,y
-  clampPosition()
+  self.x, self.y = x,y
+  clampPosition(self)
 end
 
-function gamera.setScale(newScale)
-  checkPositiveNumber(newScale, "newScale")
-  local minX, minY = window.w/world.w, window.h/world.h
-  scale = math.max(minX, minY, newScale)
+function gamera:setScale(scale)
+  checkPositiveNumber(scale, "scale")
+  self.scale = scale
 
-  clampPosition()
+  clampScale(self)
+  clampPosition(self)
 end
 
-function gamera.setAngle(newAngle)
-  checkNumber(newAngle, "newAngle")
-  angle = newAngle
+function gamera:setAngle(angle)
+  checkNumber(angle, "angle")
+  self.angle = angle
+
+  clampPosition(self)
 end
 
-function gamera.getWorld()
-  return world.l, world.t, world.w, world.h
+function gamera:getWorld()
+  return self.wl, self.wt, self.ww, self.wh
 end
 
-function gamera.getWindow()
-  return window.l, window.t, window.w, window.h
+function gamera:getWindow()
+  return self.l, self.t, self.w, self.h
 end
 
-function gamera.getPosition()
-  return position.x, position.y
+function gamera:getPosition()
+  return self.x, self.y
 end
 
-function gamera.getScale()
-  return scale
+function gamera:getScale()
+  return self.scale
 end
 
-function gamera.getAngle()
-  return angle
+function gamera:getAngle()
+  return self.angle
 end
 
-function gamera.getVisible()
-  local w,h   = window.w, window.h
-  local w2,h2 = w/(2*scale), h/(2*scale)
+function gamera:getVisible()
+  local scale = self.scale
+  local w2,h2 = self.w2/scale, self.h2/scale
 
-  return position.x - w2, position.y - h2, w/scale, h/scale
+  return self.x - w2, self.y - h2, self.w/scale, self.h/scale
 end
 
-function gamera.draw(f)
-  love.graphics.setScissor(gamera.getWindow())
+function gamera:draw(f)
+  love.graphics.setScissor(self:getWindow())
 
   love.graphics.push()
-
+    local scale = self.scale
     love.graphics.scale(scale)
 
-    love.graphics.translate(window.w/(2*scale), window.h/(2*scale))
-    love.graphics.rotate(-angle)
-    love.graphics.translate(window.l - position.x, window.t - position.y)
+    love.graphics.translate(self.w2/scale, self.h2/scale)
+    love.graphics.rotate(-self.angle)
+    love.graphics.translate(self.l - self.x, self.t - self.y)
 
-    f(gamera.getVisible())
+    f(self:getVisible())
 
   love.graphics.pop()
 
   love.graphics.setScissor()
 end
 
-function gamera.toWorld(x,y)
-  local c, s   = math.cos(angle), math.sin(angle)
-  x,y = (x - window.w/2)/scale, (y - window.h/2)/scale
+function gamera:toWorld(x,y)
+  local angle, scale = self.angle, self.scale
+  local c, s         = cos(angle), sin(angle)
+  x,y = (x - self.w2)/scale, (y - self.h2)/scale
   x,y = c*x - s*y, s*x + c*y
-
-  return x + position.x - window.l,
-         y + position.y - window.t
+  return x + self.x - self.l, y + self.y - self.t
 end
-
-function gamera.reset()
-  world    = {}
-  window   = {l=0,t=0, w=love.graphics.getWidth(), h=love.graphics.getHeight()}
-  position = {x = window.w/2, y = window.h/2}
-  scale    = 1
-  angle    = 0
-end
-
-gamera.reset()
 
 return gamera
 
