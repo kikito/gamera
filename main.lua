@@ -1,7 +1,10 @@
+local inspect = require 'inspect'
+
+
 local gamera = require 'gamera'
 
 -- game variables (entities)
-local world, player, target, cam
+local world, player, target, cam1, cam2
 
 -- auxiliary functions
 local isDown = love.keyboard.isDown
@@ -29,7 +32,7 @@ end
 
 -- target functions
 local function updateTarget(dt)
-  target.x, target.y = cam:toWorld(love.mouse.getPosition())
+  target.x, target.y = cam1:toWorld(love.mouse.getPosition())
 end
 
 local function drawTarget()
@@ -55,14 +58,14 @@ local function drawPlayer()
 end
 
 -- camera functions
-local function updateCamera(dt)
-  cam:setPosition(player.x, player.y)
+local function updateCameras(dt)
+  cam1:setPosition(player.x, player.y)
 
   local scaleFactor = isDown('z') and -0.8 or (isDown('x') and 0.8 or 0)
-  cam:setScale(cam:getScale() + scaleFactor * dt)
+  cam1:setScale(cam1:getScale() + scaleFactor * dt)
 
   local angleFactor = isDown('a') and -0.8 or (isDown('s') and 0.8 or 0)
-  cam:setAngle(cam:getAngle() + angleFactor * dt)
+  cam1:setAngle(cam1:getAngle() + angleFactor * dt)
 end
 
 -- main love functions
@@ -72,25 +75,43 @@ function love.load()
   target = { x = 500,  y = 500 }
   player = { x = 200,  y = 200, w = 100, h = 100 }
 
-  cam = gamera.new(0, 0, world.w, world.h)
-  cam:setWindow(10,10,580,580)
+  cam1 = gamera.new(0, 0, world.w, world.h)
+  cam1:setWindow(10,10,520,580)
+
+  cam2 = gamera.new(0,0, world.w, world.h)
+  cam2:setWindow(540,10,250,180)
+  cam2:setScale(0)
+  cam2:setPosition(world.w/2, world.h/2)
 end
 
 function love.update(dt)
   updatePlayer(dt)
-  updateCamera(dt)
+  updateCameras(dt)
   updateTarget(dt)
 end
 
 function love.draw()
-  cam:draw(function(l,t,w,h)
+  cam1:draw(function(l,t,w,h)
     drawWorld()
     drawPlayer()
     drawTarget()
   end)
+
+  cam2:draw(function(l,t,w,h)
+    drawWorld()
+    drawPlayer()
+    drawTarget()
+  end)
+
+  love.graphics.setColor(255,255,255)
+  love.graphics.rectangle('line', cam1:getWindow())
+  love.graphics.rectangle('line', cam2:getWindow())
 end
 
 -- exit with esc
 function love.keypressed(key)
   if key == 'escape' then love.event.quit() end
+  if key == 'v' then
+    print(inspect({cam1=cam1, cam2=cam2}))
+  end
 end
