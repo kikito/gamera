@@ -31,9 +31,15 @@ local function clamp(x, minX, maxX)
   return x < minX and minX or (x>maxX and maxX or x)
 end
 
+local function getVisibleArea(self)
+  local invScale, sin, cos = self.invScale, abs(self.sin), abs(self.cos)
+  local w,h = self.w * invScale, self.h * invScale
+  return cos*w + sin*h, sin*w + cos*h
+end
+
 local function clampPosition(self)
+  local w,h = getVisibleArea(self)
   local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
-  local _,_,w,h = self:getVisible()
   local w2,h2 = w*0.5, h*0.5
 
   self.x, self.y = clamp(self.x, wl + w2, wl + ww - w2),
@@ -41,10 +47,10 @@ local function clampPosition(self)
 end
 
 local function clampScale(self)
-  local _,_,w,h = self:getVisible()
-  local minX, minY = w/self.ww, h/self.wh
-  self.scale       = max(minX, minY, self.scale)
+  local w,h = getVisibleArea(self)
+  self.scale = max(self.scale, w/self.ww, h/self.wh, self.scale)
 end
+
 
 -- Public interface
 
@@ -56,7 +62,7 @@ function gamera.new(l,t,w,h)
     x=0, y=0,
     scale=1, invScale=1,
     angle=0, sin=math.sin(0), cos=math.cos(0),
-    l=0, t=0, w=sw, h=sh, w2=sw/2, h2=sh/2
+    l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
   }, gameraMt)
   cam:setWorld(l,t,w,h)
   return cam
@@ -121,9 +127,7 @@ function gamera:getAngle()
 end
 
 function gamera:getVisible()
-  local invScale, sin, cos = self.invScale, abs(self.sin), abs(self.cos)
-  local w,h = self.w * invScale, self.h * invScale
-  local w,h = cos*w + sin*h, sin*w + cos*h
+  local w,h = getVisibleArea(self)
   return self.x - w*0.5, self.y - h*0.5, w, h
 end
 
@@ -131,9 +135,9 @@ function gamera:draw(f)
   love.graphics.setScissor(self:getWindow())
 
   love.graphics.push()
-    local invScale = self.invScale
     love.graphics.scale(self.scale)
 
+    local invScale = self.invScale
     love.graphics.translate((self.w2 + self.l) * invScale, (self.h2+self.t) * invScale)
     love.graphics.rotate(-self.angle)
     love.graphics.translate(-self.x, -self.y)
