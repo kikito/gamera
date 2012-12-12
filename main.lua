@@ -60,6 +60,7 @@ end
 -- camera functions
 local function updateCameras(dt)
   cam1:setPosition(player.x, player.y)
+  cam2:setPosition(player.x, player.y)
 
   local scaleFactor = isDown('z') and -0.8 or (isDown('x') and 0.8 or 0)
   cam1:setScale(cam1:getScale() + scaleFactor * dt)
@@ -80,8 +81,7 @@ function love.load()
 
   cam2 = gamera.new(0,0, world.w, world.h)
   cam2:setWindow(540,10,250,180)
-  cam2:setScale(0)
-  cam2:setPosition(world.w/2, world.h/2)
+  cam2:setScale(0) -- it will self-adjust to the minimum available
 end
 
 function love.update(dt)
@@ -101,6 +101,8 @@ function love.draw()
     drawWorld()
     drawPlayer()
     drawTarget()
+    love.graphics.setColor(0,0,255,100)
+    love.graphics.rectangle('fill', cam1:getVisible())
   end)
 
   love.graphics.setColor(255,255,255)
