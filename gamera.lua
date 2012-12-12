@@ -28,7 +28,7 @@ local function checkAABB(l,t,w,h)
 end
 
 local function clamp(x, minX, maxX)
-  if maxX < minX then return (minX-maxX)*.5 end
+  assert(maxX >= minX)
   return x < minX and minX or (x>maxX and maxX or x)
 end
 
@@ -78,7 +78,7 @@ function gamera:setPosition(x,y)
 end
 
 function gamera:setScale(scale)
-  checkPositiveNumber(scale, "scale")
+  checkNumber(scale, "scale")
   self.scale = scale
 
   clampScale(self)
@@ -126,9 +126,9 @@ function gamera:draw(f)
     local scale = self.scale
     love.graphics.scale(scale)
 
-    love.graphics.translate(self.w2/scale, self.h2/scale)
+    love.graphics.translate((self.w2 + self.l)/scale, (self.h2+self.t)/scale)
     love.graphics.rotate(-self.angle)
-    love.graphics.translate(self.l - self.x, self.t - self.y)
+    love.graphics.translate(-self.x, -self.y)
 
     f(self:getVisible())
 
@@ -140,9 +140,9 @@ end
 function gamera:toWorld(x,y)
   local angle, scale = self.angle, self.scale
   local c, s         = cos(angle), sin(angle)
-  x,y = (x - self.w2)/scale, (y - self.h2)/scale
+  x,y = (x - self.w2 - self.l)/scale, (y - self.h2 - self.t)/scale
   x,y = c*x - s*y, s*x + c*y
-  return x + self.x - self.l, y + self.y - self.t
+  return x + self.x, y + self.y
 end
 
 return gamera
