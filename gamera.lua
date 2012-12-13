@@ -1,21 +1,34 @@
+-- gamera.lua v0.8
+
+-- Copyright (c) 2012 Enrique García Cota
+-- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-- Based on YaciCode, from Julien Patte and LuaObject, from Sebastien Rocca-Serra
 
 local gamera = {}
 
 -- Private attributes and methods
 
-local world, window, position, scale
+local gameraMt = {__index = gamera}
+local abs = math.abs
 
-local function max(a,b)
-  return a > b and a or b
+local function min(a,b) return a < b and a or b end
+local function max(a,b) return a > b and a or b end
+
+local function clamp(x, minX, maxX)
+  return x < minX and minX or (x>maxX and maxX or x)
 end
 
 local function checkNumber(value, name)
-  if type(value) ~= 'number' then error(name .. " must be a number") end
+  if type(value) ~= 'number' then
+    error(name .. " must be a number (was: " .. tostring(value) .. ")")
+  end
 end
 
 local function checkPositiveNumber(value, name)
   if type(value) ~= 'number' or value <=0 then
-    error(name .. " must be a postive number")
+    error(name .. " must be a positive number (was: " .. tostring(value) ..")")
   end
 end
 
@@ -26,101 +39,145 @@ local function checkAABB(l,t,w,h)
   checkPositiveNumber(h, "h")
 end
 
-local function clamp(x, minX, maxX)
-  if maxX < minX then return (minX-maxX)*.5 end
-  return x < minX and minX or (x>maxX and maxX or x)
+local function getVisibleArea(self, scale)
+  scale = scale or self.scale
+  local sin, cos = abs(self.sin), abs(self.cos)
+  local w,h = self.w / scale, self.h / scale
+  w,h = cos*w + sin*h, sin*w + cos*h
+  return min(w,self.ww), min(h, self.wh)
 end
 
-local function clampPosition()
-  local wl,wt,ww,wh = world.l, world.t, world.w, world.h
-  local sx,sy = scale.x, scale.y
-  local w2,h2 = window.w*0.5/sx, window.h*0.5/sy
+local function adjustPosition(self)
+  local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
+  local w,h = getVisibleArea(self)
+  local w2,h2 = w*0.5, h*0.5
 
-  position.x, position.y = clamp(position.x, wl + w2, wl + ww - w2),
-                           clamp(position.y, wt + h2, wt + wh - h2)
+  local left, right  = wl + w2, wl + ww - w2
+  local top,  bottom = wt + h2, wt + wh - h2
+
+  self.x, self.y = clamp(self.x, left, right), clamp(self.y, top, bottom)
 end
 
+local function adjustScale(self)
+  local w,h,ww,wh = self.w, self.h, self.ww, self.wh
+  local rw,rh     = getVisibleArea(self, 1)      -- rotated frame: area around the window, rotated without scaling
+  local sx,sy     = rw/ww, rh/wh                 -- vert/horiz scale: minimun scales that the window needs to occupy the world
+  local rscale    = max(sx,sy)
+
+  self.scale = max(self.scale, rscale)
+end
 
 -- Public interface
 
-function gamera.setWorld(l,t,w,h)
+function gamera.new(l,t,w,h)
+
+  local sw,sh = love.graphics.getWidth(), love.graphics.getHeight()
+
+  local cam = setmetatable({
+    x=0, y=0,
+    scale=1,
+    angle=0, sin=math.sin(0), cos=math.cos(0),
+    l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
+  }, gameraMt)
+
+  cam:setWorld(l,t,w,h)
+
+  return cam
+end
+
+function gamera:setWorld(l,t,w,h)
   checkAABB(l,t,w,h)
-  world.l, world.t, world.w, world.h = l,t,w,h
+
+  self.wl, self.wt, self.ww, self.wh = l,t,w,h
+
+  adjustPosition(self)
 end
 
-function gamera.getWorld()
-  return world.l, world.t, world.w, world.h
-end
-
-function gamera.setWindow(l,t,w,h)
+function gamera:setWindow(l,t,w,h)
   checkAABB(l,t,w,h)
-  window.l, window.t, window.w, window.h = l,t,w,h
+
+  self.l, self.t, self.w, self.h, self.w2, self.h2 = l,t,w,h, w*0.5, h*0.5
+
+  adjustPosition(self)
 end
 
-function gamera.getWindow()
-  return window.l, window.t, window.w, window.h
-end
-
-function gamera.getVisible()
-  local w,h = window.w, window.h
-  local sx,sy = scale.x, scale.y
-
-  local w2,h2 = w*0.5/sx, h*0.5/sy
-
-  return position.x - w2, position.y - h2, w/sx, h/sy
-end
-
-function gamera.setPosition(x,y)
+function gamera:setPosition(x,y)
   checkNumber(x, "x")
   checkNumber(y, "y")
 
-  position.x, position.y = x,y
-  clampPosition()
+  self.x, self.y = x,y
+
+  adjustPosition(self)
 end
 
-function gamera.getPosition()
-  return position.x, position.y
+function gamera:setScale(scale)
+  checkNumber(scale, "scale")
+
+  self.scale = scale
+
+  adjustScale(self)
+  adjustPosition(self)
 end
 
-function gamera.setScale(sx, sy)
-  checkPositiveNumber(sx, "sx")
-  sy = sy or sx
-  checkPositiveNumber(sy, "sy")
-  local minX, minY = window.w/world.w, window.h/world.h
+function gamera:setAngle(angle)
+  checkNumber(angle, "angle")
 
-  scale.x, scale.y = max(minX, sx), max(minY, sy)
+  self.angle = angle
+  self.cos, self.sin = math.cos(angle), math.sin(angle)
 
-  clampPosition()
+  adjustScale(self)
+  adjustPosition(self)
 end
 
-function gamera.getScale()
-  return scale.x, scale.y
+function gamera:getWorld()
+  return self.wl, self.wt, self.ww, self.wh
 end
 
-function gamera.draw(f)
-  love.graphics.setScissor(gamera.getWindow())
+function gamera:getWindow()
+  return self.l, self.t, self.w, self.h
+end
+
+function gamera:getPosition()
+  return self.x, self.y
+end
+
+function gamera:getScale()
+  return self.scale
+end
+
+function gamera:getAngle()
+  return self.angle
+end
+
+function gamera:getVisible()
+  local w,h = getVisibleArea(self)
+  return self.x - w*0.5, self.y - h*0.5, w, h
+end
+
+function gamera:draw(f)
+  love.graphics.setScissor(self:getWindow())
+
   love.graphics.push()
-    love.graphics.translate(window.l, window.t)
-    love.graphics.push()
-      local l,t,w,h = gamera.getVisible()
-      love.graphics.translate(-l,-t)
-      love.graphics.scale(scale.x, scale.y)
-      f(l,t,w,h)
+    local scale = self.scale
+    love.graphics.scale(scale)
 
-    love.graphics.pop()
+    love.graphics.translate((self.w2 + self.l) / scale, (self.h2+self.t) / scale)
+    love.graphics.rotate(-self.angle)
+    love.graphics.translate(-self.x, -self.y)
+
+    f(self:getVisible())
+
   love.graphics.pop()
+
   love.graphics.setScissor()
 end
 
-function gamera.reset()
-  world    = {}
-  window   = {l=0,t=0, w=love.graphics.getWidth(), h=love.graphics.getHeight()}
-  position = {x = window.w/2, y = window.h/2}
-  scale    = {x=1, y=1}
+function gamera:toWorld(x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
+  x,y = cos*x - sin*y, sin*x + cos*y
+  return x + self.x, y + self.y
 end
-
-
-gamera.reset()
 
 return gamera
 
