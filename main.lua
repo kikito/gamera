@@ -1,6 +1,3 @@
-local inspect = require 'inspect'
-
-
 local gamera = require 'gamera'
 
 -- game variables (entities)
@@ -78,10 +75,10 @@ local function updateCameras(dt)
   cam1:setPosition(player.x, player.y)
   cam2:setPosition(player.x, player.y)
 
-  local scaleFactor = isDown('z') and -0.8 or (isDown('x') and 0.8 or 0)
+  local scaleFactor = isDown('down') and -0.8 or (isDown('up') and 0.8 or 0)
   cam1:setScale(cam1:getScale() + scaleFactor * dt)
 
-  local angleFactor = isDown('a') and -0.8 or (isDown('s') and 0.8 or 0)
+  local angleFactor = isDown('left') and -0.8 or (isDown('right') and 0.8 or 0)
   cam1:setAngle(cam1:getAngle() + angleFactor * dt)
 end
 
@@ -129,7 +126,4 @@ end
 -- exit with esc
 function love.keypressed(key)
   if key == 'escape' then love.event.quit() end
-  if key == 'v' then
-    print(inspect({cam1=cam1, cam2=cam2}))
-  end
 end
