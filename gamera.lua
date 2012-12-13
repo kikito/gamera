@@ -4,7 +4,14 @@ local gamera = {}
 -- Private attributes and methods
 
 local gameraMt = {__index = gamera}
-local max, abs = math.max, math.abs
+local abs = math.abs
+
+local function min(a,b) return a < b and a or b end
+local function max(a,b) return a > b and a or b end
+
+local function clamp(x, minX, maxX)
+  return x < minX and minX or (x>maxX and maxX or x)
+end
 
 local function checkNumber(value, name)
   if type(value) ~= 'number' then
@@ -25,31 +32,33 @@ local function checkAABB(l,t,w,h)
   checkPositiveNumber(h, "h")
 end
 
-local function clamp(x, minX, maxX)
-  assert(maxX >= minX)
-  return x < minX and minX or (x>maxX and maxX or x)
+local function getVisibleArea(self, scale)
+  scale = scale or self.scale
+  local sin, cos = abs(self.sin), abs(self.cos)
+  local w,h = self.w / scale, self.h / scale
+  w,h = cos*w + sin*h, sin*w + cos*h
+  return min(w,self.ww), min(h, self.wh)
 end
 
-local function getVisibleArea(self)
-  local invScale, sin, cos = self.invScale, abs(self.sin), abs(self.cos)
-  local w,h = self.w * invScale, self.h * invScale
-  return cos*w + sin*h, sin*w + cos*h
-end
-
-local function clampPosition(self)
-  local w,h = getVisibleArea(self)
+local function adjustPosition(self)
   local wl,wt,ww,wh = self.wl, self.wt, self.ww, self.wh
+  local w,h = getVisibleArea(self)
   local w2,h2 = w*0.5, h*0.5
 
-  self.x, self.y = clamp(self.x, wl + w2, wl + ww - w2),
-                   clamp(self.y, wt + h2, wt + wh - h2)
+  local left, right  = wl + w2, wl + ww - w2
+  local top,  bottom = wt + h2, wt + wh - h2
+
+  self.x, self.y = clamp(self.x, left, right), clamp(self.y, top, bottom)
 end
 
-local function clampScale(self)
-  local w,h = getVisibleArea(self)
-  self.scale = max(self.scale, w/self.ww, h/self.wh, self.scale)
-end
+local function adjustScale(self)
+  local w,h,ww,wh = self.w, self.h, self.ww, self.wh
+  local rw,rh     = getVisibleArea(self, 1)      -- rotated frame: area around the window, rotated without scaling
+  local sx,sy     = rw/ww, rh/wh                 -- vert/horiz scale: minimun scales that the window needs to occupy the world
+  local rscale    = max(sx,sy)
 
+  self.scale = max(self.scale, rscale)
+end
 
 -- Public interface
 
@@ -59,24 +68,30 @@ function gamera.new(l,t,w,h)
 
   local cam = setmetatable({
     x=0, y=0,
-    scale=1, invScale=1,
+    scale=1,
     angle=0, sin=math.sin(0), cos=math.cos(0),
     l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
   }, gameraMt)
+
   cam:setWorld(l,t,w,h)
+
   return cam
 end
 
 function gamera:setWorld(l,t,w,h)
   checkAABB(l,t,w,h)
+
   self.wl, self.wt, self.ww, self.wh = l,t,w,h
-  clampPosition(self)
+
+  adjustPosition(self)
 end
 
 function gamera:setWindow(l,t,w,h)
   checkAABB(l,t,w,h)
+
   self.l, self.t, self.w, self.h, self.w2, self.h2 = l,t,w,h, w*0.5, h*0.5
-  clampPosition(self)
+
+  adjustPosition(self)
 end
 
 function gamera:setPosition(x,y)
@@ -84,25 +99,27 @@ function gamera:setPosition(x,y)
   checkNumber(y, "y")
 
   self.x, self.y = x,y
-  clampPosition(self)
+
+  adjustPosition(self)
 end
 
 function gamera:setScale(scale)
   checkNumber(scale, "scale")
 
   self.scale = scale
-  clampScale(self)
-  self.invScale = 1/self.scale
 
-  clampPosition(self)
+  adjustScale(self)
+  adjustPosition(self)
 end
 
 function gamera:setAngle(angle)
   checkNumber(angle, "angle")
+
   self.angle = angle
   self.cos, self.sin = math.cos(angle), math.sin(angle)
 
-  clampPosition(self)
+  adjustScale(self)
+  adjustPosition(self)
 end
 
 function gamera:getWorld()
@@ -134,10 +151,10 @@ function gamera:draw(f)
   love.graphics.setScissor(self:getWindow())
 
   love.graphics.push()
-    love.graphics.scale(self.scale)
+    local scale = self.scale
+    love.graphics.scale(scale)
 
-    local invScale = self.invScale
-    love.graphics.translate((self.w2 + self.l) * invScale, (self.h2+self.t) * invScale)
+    love.graphics.translate((self.w2 + self.l) / scale, (self.h2+self.t) / scale)
     love.graphics.rotate(-self.angle)
     love.graphics.translate(-self.x, -self.y)
 
@@ -149,8 +166,8 @@ function gamera:draw(f)
 end
 
 function gamera:toWorld(x,y)
-  local invScale, sin, cos = self.invScale, self.sin, self.cos
-  x,y = (x - self.w2 - self.l) * invScale, (y - self.h2 - self.t) * invScale
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
   x,y = cos*x - sin*y, sin*x + cos*y
   return x + self.x, y + self.y
 end
