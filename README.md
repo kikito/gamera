@@ -16,7 +16,7 @@ You can update the world definition later on with `setWorld`:
 
     cam:setWorld(0,0,2000,2000)
 
-By default gamera will use the whole screen to display graphics. You can restrict the amount of screen used with `setWindowBoundaries`:
+By default gamera will use the whole screen to display graphics. You can restrict the amount of screen used with `setWindow`:
 
     cam:setWindow(0,0,800,600)
 
