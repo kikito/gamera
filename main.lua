@@ -1,5 +1,7 @@
 local gamera = require 'gamera'
 
+local min, max = math.min, math.max
+
 -- game variables (entities)
 local world, player, target, cam1, cam2
 
@@ -10,14 +12,6 @@ local floor = math.floor
 local function makeZero(x,minX,maxX)
   if x > maxX or x < minX then return x end
   return 0
-end
-
-local function max(a,b)
-  return a > b and a or b
-end
-
-local function min(a,b)
-  return a < b and a or b
 end
 
 -- world functions
@@ -82,6 +76,23 @@ local function updateCameras(dt)
   cam1:setAngle(cam1:getAngle() + angleFactor * dt)
 end
 
+local function drawCam1ViewPort()
+  love.graphics.setColor(0,0,255,100)
+  love.graphics.rectangle('fill', cam1:getVisible())
+
+  local x,y     = cam1:getPosition()
+  local _,_,w,h = cam1:getWindow()
+  local w2,h2 = w/2,h/2
+
+  local x1,y1 = cam1:toScreen(x-w2,y-h2)
+  local x2,y2 = cam1:toScreen(x+w2,y-h2)
+  local x3,y3 = cam1:toScreen(x+w2,y+h2)
+  local x4,y4 = cam1:toScreen(x-w2,y+h2)
+
+  love.graphics.setColor(255,255,255, 100)
+  love.graphics.polygon('fill', x1,y1,x2,y2,x3,y3,x4,y4)
+end
+
 -- main love functions
 
 function love.load()
@@ -114,8 +125,7 @@ function love.draw()
     drawWorld(l,t,w,h)
     drawPlayer()
     drawTarget()
-    love.graphics.setColor(0,0,255,100)
-    love.graphics.rectangle('fill', cam1:getVisible())
+    drawCam1ViewPort()
   end)
 
   love.graphics.setColor(255,255,255)

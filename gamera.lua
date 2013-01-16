@@ -11,10 +11,7 @@ local gamera = {}
 -- Private attributes and methods
 
 local gameraMt = {__index = gamera}
-local abs = math.abs
-
-local function min(a,b) return a < b and a or b end
-local function max(a,b) return a > b and a or b end
+local abs, min, max = math.abs, math.min, math.max
 
 local function clamp(x, minX, maxX)
   return x < minX and minX or (x>maxX and maxX or x)
@@ -177,6 +174,13 @@ function gamera:toWorld(x,y)
   x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
   x,y = cos*x - sin*y, sin*x + cos*y
   return x + self.x, y + self.y
+end
+
+function gamera:toScreen(x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = x - self.x, y - self.y
+  x,y = -cos*x + sin*y, -sin*x - cos*y
+  return self.x - (x/scale + self.l), self.y - (y/scale + self.t)
 end
 
 return gamera
