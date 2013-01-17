@@ -80,17 +80,8 @@ local function drawCam1ViewPort()
   love.graphics.setColor(0,0,255,100)
   love.graphics.rectangle('fill', cam1:getVisible())
 
-  local x,y     = cam1:getPosition()
-  local _,_,w,h = cam1:getWindow()
-  local w2,h2 = w/2,h/2
-
-  local x1,y1 = cam1:toScreen(x-w2,y-h2)
-  local x2,y2 = cam1:toScreen(x+w2,y-h2)
-  local x3,y3 = cam1:toScreen(x+w2,y+h2)
-  local x4,y4 = cam1:toScreen(x-w2,y+h2)
-
   love.graphics.setColor(255,255,255, 100)
-  love.graphics.polygon('fill', x1,y1,x2,y2,x3,y3,x4,y4)
+  love.graphics.polygon('fill', cam1:getVisiblePolygon())
 end
 
 -- main love functions

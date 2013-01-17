@@ -151,6 +151,17 @@ function gamera:getVisible()
   return self.x - w*0.5, self.y - h*0.5, w, h
 end
 
+function gamera:getVisiblePolygon()
+  local x,y,w2,h2 = self.x, self.y, self.w2, self.h2
+
+  local x1,y1 = self:toScreen(x-w2,y-h2)
+  local x2,y2 = self:toScreen(x+w2,y-h2)
+  local x3,y3 = self:toScreen(x+w2,y+h2)
+  local x4,y4 = self:toScreen(x-w2,y+h2)
+
+  return x1,y1,x2,y2,x3,y3,x4,y4
+end
+
 function gamera:draw(f)
   love.graphics.setScissor(self:getWindow())
 
