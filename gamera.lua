@@ -11,10 +11,7 @@ local gamera = {}
 -- Private attributes and methods
 
 local gameraMt = {__index = gamera}
-local abs = math.abs
-
-local function min(a,b) return a < b and a or b end
-local function max(a,b) return a > b and a or b end
+local abs, min, max = math.abs, math.min, math.max
 
 local function clamp(x, minX, maxX)
   return x < minX and minX or (x>maxX and maxX or x)
@@ -154,6 +151,17 @@ function gamera:getVisible()
   return self.x - w*0.5, self.y - h*0.5, w, h
 end
 
+function gamera:getVisibleCorners()
+  local x,y,w2,h2 = self.x, self.y, self.w2, self.h2
+
+  local x1,y1 = self:toScreen(x-w2,y-h2)
+  local x2,y2 = self:toScreen(x+w2,y-h2)
+  local x3,y3 = self:toScreen(x+w2,y+h2)
+  local x4,y4 = self:toScreen(x-w2,y+h2)
+
+  return x1,y1,x2,y2,x3,y3,x4,y4
+end
+
 function gamera:draw(f)
   love.graphics.setScissor(self:getWindow())
 
@@ -177,6 +185,13 @@ function gamera:toWorld(x,y)
   x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
   x,y = cos*x - sin*y, sin*x + cos*y
   return x + self.x, y + self.y
+end
+
+function gamera:toScreen(x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = x - self.x, y - self.y
+  x,y = -cos*x + sin*y, -sin*x - cos*y
+  return self.x - (x/scale + self.l), self.y - (y/scale + self.t)
 end
 
 return gamera
