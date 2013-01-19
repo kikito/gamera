@@ -122,6 +122,12 @@ function love.draw()
   love.graphics.setColor(255,255,255)
   love.graphics.rectangle('line', cam1:getWindow())
   love.graphics.rectangle('line', cam2:getWindow())
+
+  local msg = [[ gamera demo
+    * mouse: move player
+    * arrow keys: camera angle / scale
+  ]]
+  love.graphics.print(msg, 540, 300)
 end
 
 -- exit with esc
