@@ -81,7 +81,7 @@ local function drawCam1ViewPort()
   love.graphics.rectangle('fill', cam1:getVisible())
 
   love.graphics.setColor(255,255,255, 100)
-  love.graphics.polygon('fill', cam1:getVisiblePolygon())
+  love.graphics.polygon('fill', cam1:getVisibleCorners())
 end
 
 -- main love functions

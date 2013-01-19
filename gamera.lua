@@ -151,7 +151,7 @@ function gamera:getVisible()
   return self.x - w*0.5, self.y - h*0.5, w, h
 end
 
-function gamera:getVisiblePolygon()
+function gamera:getVisibleCorners()
   local x,y,w2,h2 = self.x, self.y, self.w2, self.h2
 
   local x1,y1 = self:toScreen(x-w2,y-h2)
