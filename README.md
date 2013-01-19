@@ -52,7 +52,7 @@ The camera has one method called "draw". It takes one function as a parameter, l
 
 Anything drawn inside the function will be scaled, rotated, translated and cut so that it appears as it should in the screen window.
 
-Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees". They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
+Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees" (same as calling cam:getVisible()). They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
 
 
 Querying the camera
@@ -61,6 +61,7 @@ Querying the camera
 * `cam:getWorld()` returns the l,t,w,h of the world
 * `cam:getWindow()` returns the l,t,w,h of the screen window
 * `cam:getVisible()` returns the l,t,w,h of what is currently visible in the world, taking into account rotation, scale and translation. It coincides with the parameters of the callback function in `gamera.draw`. It can contain more than what is necessary due to rotation.
+* `cam:getVisibleCorners()` returns the corners of the rotated rectangle that represent the exact region being seen by the camera, in the form x1,y1,x2,y2,x3,y3,x4,y4
 
 * `cam:getPosition()` returns the coordinates the camera is currently "looking at", after it has been corrected so that the world boundaries are not visible, if possible.
 * `cam:getScale()` returns the current scaleX and scaleY parameters
@@ -69,7 +70,8 @@ Querying the camera
 Coordinate transformations
 --------------------------
 
-* `gamera.toWorld(x,y)` transforms screen coordinates into world coordinates, taking into account the window, scale, rotation and translation. Useful for mouse interaction, for example.
+* `cam:toWorld(x,y)` transforms screen coordinates into world coordinates, taking into account the window, scale, rotation and translation. Useful for mouse interaction, for example.
+* `cam:toScreen(x,y)` transforms given a coordinate in the world, return the real coords it has on the screen. Useul to represent icons in minimaps, for example.
 
 
 Installation
@@ -80,3 +82,4 @@ Just copy the gamera.lua file wherever you want it. Then require it where you ne
     local gamera = require 'gamera'
 
 Please make sure that you read the license, too (for your convenience it's included at the beginning of the gamera.lua file).
+
