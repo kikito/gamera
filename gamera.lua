@@ -1,4 +1,4 @@
--- gamera.lua v1.0
+-- gamera.lua v1.0.1
 
 -- Copyright (c) 2012 Enrique García Cota
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -42,6 +42,13 @@ local function getVisibleArea(self, scale)
   local w,h = self.w / scale, self.h / scale
   w,h = cos*w + sin*h, sin*w + cos*h
   return min(w,self.ww), min(h, self.wh)
+end
+
+local function cornerTransform(self, x,y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = x - self.x, y - self.y
+  x,y = -cos*x + sin*y, -sin*x - cos*y
+  return self.x - (x/scale + self.l), self.y - (y/scale + self.t)
 end
 
 local function adjustPosition(self)
@@ -154,10 +161,10 @@ end
 function gamera:getVisibleCorners()
   local x,y,w2,h2 = self.x, self.y, self.w2, self.h2
 
-  local x1,y1 = self:toScreen(x-w2,y-h2)
-  local x2,y2 = self:toScreen(x+w2,y-h2)
-  local x3,y3 = self:toScreen(x+w2,y+h2)
-  local x4,y4 = self:toScreen(x-w2,y+h2)
+  local x1,y1 = cornerTransform(self, x-w2,y-h2)
+  local x2,y2 = cornerTransform(self, x+w2,y-h2)
+  local x3,y3 = cornerTransform(self, x+w2,y+h2)
+  local x4,y4 = cornerTransform(self, x-w2,y+h2)
 
   return x1,y1,x2,y2,x3,y3,x4,y4
 end
@@ -190,8 +197,8 @@ end
 function gamera:toScreen(x,y)
   local scale, sin, cos = self.scale, self.sin, self.cos
   x,y = x - self.x, y - self.y
-  x,y = -cos*x + sin*y, -sin*x - cos*y
-  return self.x - (x/scale + self.l), self.y - (y/scale + self.t)
+  x,y = cos*x + sin*y, -sin*x + cos*y
+  return scale * x + self.w2 + self.l, scale * y + self.h2 + self.t
 end
 
 return gamera
