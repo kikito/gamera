@@ -64,6 +64,12 @@ local function drawPlayer()
                           player.h)
 end
 
+local function drawPlayerMarker()
+  local x,y = cam1:toScreen(player.x, player.y);
+  love.graphics.setColor(255,0,0)
+  love.graphics.circle('line', x, y, 30)
+end
+
 -- camera functions
 local function updateCameras(dt)
   cam1:setPosition(player.x, player.y)
@@ -118,6 +124,8 @@ function love.draw()
     drawTarget()
     drawCam1ViewPort()
   end)
+
+  drawPlayerMarker()
 
   love.graphics.setColor(255,255,255)
   love.graphics.rectangle('line', cam1:getWindow())
