@@ -33,7 +33,7 @@ You can also zoom in and zoom out. This is done using the `setScale` method. Whe
 
     cam:setScale(2.0) -- make everything twice as bigger. By default, scale is 1 (no change)
 
-Take notice that gamera limits the amount of zoom out you can make; you can not "zoom out" to see the world edges. If you want to do this, make the world bigger first. For example, to give a 100-pixels border to a world defined as 0,0,2000,2000, you can define it like -100,100,2200,2200 instead.
+Take notice that gamera limits the amount of zoom out you can make; you can not "zoom out" to see the world edges. If you want to do this, make the world bigger first. For example, to give a 100-pixels border to a world defined as `0,0,2000,`, you can define it like `-100,100,2100,2100` instead.
 
 Finally, you can modify the angle with `setAngle`:
 
@@ -52,7 +52,7 @@ The camera has one method called "draw". It takes one function as a parameter, l
 
 Anything drawn inside the function will be scaled, rotated, translated and cut so that it appears as it should in the screen window.
 
-Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees" (same as calling cam:getVisible()). They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
+Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees" (same as calling `cam:getVisible()`). They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
 
 
 Querying the camera
@@ -61,7 +61,7 @@ Querying the camera
 * `cam:getWorld()` returns the l,t,w,h of the world
 * `cam:getWindow()` returns the l,t,w,h of the screen window
 * `cam:getVisible()` returns the l,t,w,h of what is currently visible in the world, taking into account rotation, scale and translation. It coincides with the parameters of the callback function in `gamera.draw`. It can contain more than what is necessary due to rotation.
-* `cam:getVisibleCorners()` returns the corners of the rotated rectangle that represent the exact region being seen by the camera, in the form x1,y1,x2,y2,x3,y3,x4,y4
+* `cam:getVisibleCorners()` returns the corners of the rotated rectangle that represent the exact region being seen by the camera, in the form `x1,y1,x2,y2,x3,y3,x4,y4`
 
 * `cam:getPosition()` returns the coordinates the camera is currently "looking at", after it has been corrected so that the world boundaries are not visible, if possible.
 * `cam:getScale()` returns the current scaleX and scaleY parameters
