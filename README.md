@@ -103,7 +103,7 @@ To prevent this:
 * Add a 2-pixel border to each of your quads (So for a 32x32 quad, you use 36x36 space, with the 32x32 quad in the center and a 2-pixel border)
 * Fill up the borders with the colors of the 32x32 quad. For example, if the earth quad is all brown on its left side, color the left border brown. If on its upper side is gray in the center and brown on the sides, color the upper border gray in the center and brown on the sides.
 * The quads will still be 32x32 - they will just have some border in the image now.
-* The "seams" will still appear, but now they will show the "colored borders" of the quads, so they will not be visible.
+* The "seams" will still appear, but now they will show the "colored borders" of the quads, so they will not be noticeable.
 * Calculating the coordinates of the quads is a bit more complex than before. You can use [anim8](https://github.com/kikito/anim8)'s "Grids" to simplify getting them:
 
 ```lua
@@ -120,6 +120,7 @@ local earth = g(1,1)[1] -- Get the first column, first row 32x32 quad, including
 local water = g(2,1)[1] -- Get the second column, first row quad
 ```
 
+You can combine this with the previous FAQ and use a "nearest" filter instead of a linear one.
 
 Installation
 ============
