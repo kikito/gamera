@@ -76,7 +76,7 @@ Coordinate transformations
 FAQ
 ===
 
-* Everything looks kindof "blurry" when I do zooms/rotations with this library. How do I prevent it?
+> Everything looks kindof "blurry" when I do zooms/rotations with this library. How do I prevent it?
 
 LÖVE uses a default [filter mode](https://love2d.org/wiki/FilterMode) which makes images "blurry" when you make almost any transformation to them. To deactivate this behavior globally, you can add this at the beginning of your game, before you load anything (for example at the beginning of `love.load`):
 
@@ -91,7 +91,7 @@ local img = love.graphics.newImage('imgs/player.png')
 img:setFilter('nearest', 'nearest')
 ```
 
-* I see "seams" around my tiles when I use this library. Why?
+> I see "seams" around my tiles when I use this library. Why?
 
 It is due to a combination of factors: how OpenGL textures work, how floating point numbers work and how LÖVE stores texture information in memory. 
 
