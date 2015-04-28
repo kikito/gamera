@@ -73,6 +73,53 @@ Coordinate transformations
 * `cam:toWorld(x,y)` transforms screen coordinates into world coordinates, taking into account the window, scale, rotation and translation. Useful for mouse interaction, for example.
 * `cam:toScreen(x,y)` transforms given a coordinate in the world, return the real coords it has on the screen. Useul to represent icons in minimaps, for example.
 
+FAQ
+===
+
+* Everything looks kindof "blurry" when I do zooms/rotations with this library. How do I prevent it?
+
+LÖVE uses a default [filter mode](https://love2d.org/wiki/FilterMode) which makes images "blurry" when you make almost any transformation to them. To deactivate this behavior globally, you can add this at the beginning of your game, before you load anything (for example at the beginning of `love.load`):
+
+``` lua
+love.graphics.setDefaultFilter( 'nearest', 'nearest' )
+```
+
+You can also set the filter of each image you load individually:
+
+``` lua
+local img = love.graphics.newImage('imgs/player.png')
+img:setFilter('nearest', 'nearest')
+```
+
+* I see "seams" around my tiles when I use this library. Why?
+
+It is due to a combination of factors: how OpenGL textures work, how floating point numbers work and how LÖVE stores texture information in memory. 
+
+The end result is that sometimes, when drawing an image, "parts of the area around it" are also drawn. So if you draw a Quad of "earth", and immediately above it in your image you have a "bright lava" tile, when you draw the earth tile sometimes "a bit of the lava" is drawn near the top. If you are using images instead of quads, you can get seams too (either black or from other colors, depending on how the image is stored in memory).
+
+To prevent this:
+
+* Always use quads for tiles, never images.
+* Add a 2-pixel border to each of your quads (So for a 32x32 quad, you use 36x36 space, with the 32x32 quad in the center and a 2-pixel border)
+* Fill up the borders with the colors of the 32x32 quad. For example, if the earth quad is all brown on its left side, color the left border brown. If on its upper side is gray in the center and brown on the sides, color the upper border gray in the center and brown on the sides.
+* The quads will still be 32x32 - they will just have some border in the image now.
+* The "seams" will still appear, but now they will show the "colored borders" of the quads, so they will not be visible.
+* Calculating the coordinates of the quads is a bit more complex than before. You can use [anim8](https://github.com/kikito/anim8)'s "Grids" to simplify getting them:
+
+```lua
+local anim8 = require 'anim8'
+
+...
+
+local tiles = love.graphics.newImage('tiles.png')
+local w,h = tiles:getDimensions()
+
+local g = anim8.newGrid(32, 32, w, h, 0, 0, 2) -- tileWidth, tileHeight, imageW, imageH, left, top, border
+
+local earth = g(1,1)[1] -- Get the first column, first row 32x32 quad, including border
+local water = g(2,1)[1] -- Get the second column, first row quad
+```
+
 
 Installation
 ============
