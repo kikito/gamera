@@ -122,6 +122,44 @@ local water = g(2,1)[1] -- Get the second column, first row quad
 
 You can combine this with the previous FAQ and use a "nearest" filter instead of a linear one.
 
+> The camera is "clamping". I don't want it to clamp
+
+Yes, by default `gamera` cameras make sure that they always "stay in the world". They never "show black borders" around the scene.
+
+There is no way to deactivate this behaviour. However, you can "mimic" it very well. It's actually very simple: give the camera a
+bigger world.
+
+For example, if instead of doing this:
+
+```lua
+local cam = gamera.new(0,0,2000,2000)
+```
+
+You do this:
+
+```lua
+local cam = gamera.new(-200,-200,2200,2200)
+```
+
+You will give the world a 200 pixel "black border" which will be visible when the camera zooms out or moves to the left or right.
+
+If you want to display the borders only sometimes, you can use `setWorld` to activate/deactivate the zoom:
+
+```lua
+local cam = gamera.new(0,0,2000,2000)
+
+... -- the camera "clamps" when drawing
+
+cam:setWorld(-200,-200,2200,2200)
+
+... -- Now the camera has a 200px border
+
+cam:setWorld(0,0,2000,2000)
+
+... -- now it clamps again
+
+```
+
 Installation
 ============
 
