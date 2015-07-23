@@ -23,7 +23,7 @@ You can move the camera around by using `setPosition`:
 
 `setPosition` takes into account the current window boundaries and world boundaries, and tries to keep the window inside the world as much as it can. This means that if you try to look at something very close to the left border of the world, for example, the camera will not "scroll" to show empty space.
 
-You can also zoom in and zoom out. This is done using the `setScale` method. When given two parameters, the first one is the x-scale, while the second one is the y-scale. If you pass only one parameter, it's used for both x and y. The default scale is 1.0 in both axis.
+You can also zoom in and zoom out. This is done using the `setScale` method.  It's got a single parameter, which is used for both x and y. The default scale is 1.0.
 
     gamera.setScale(2.0)
 
