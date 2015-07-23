@@ -12,6 +12,7 @@ local gamera = {}
 
 local gameraMt = {__index = gamera}
 local abs, min, max = math.abs, math.min, math.max
+local isClamped = true
 
 local function clamp(x, minX, maxX)
   return x < minX and minX or (x>maxX and maxX or x)
@@ -59,7 +60,9 @@ local function adjustPosition(self)
   local left, right  = wl + w2, wl + ww - w2
   local top,  bottom = wt + h2, wt + wh - h2
 
-  self.x, self.y = clamp(self.x, left, right), clamp(self.y, top, bottom)
+  if isClamped then
+    self.x, self.y = clamp(self.x, left, right), clamp(self.y, top, bottom)
+  end
 end
 
 local function adjustScale(self)
@@ -87,6 +90,10 @@ function gamera.new(l,t,w,h)
   cam:setWorld(l,t,w,h)
 
   return cam
+end
+
+function gamera:setClamped(c)
+	isClamped = c
 end
 
 function gamera:setWorld(l,t,w,h)
