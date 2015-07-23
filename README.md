@@ -29,7 +29,7 @@ You can move the camera around by using `setPosition`:
 
 `setPosition` takes into account the current window boundaries and world boundaries, and will keep the view inside the world. This means that if you try to look at something very close to the left border of the world, for example, the camera will not "scroll" to show empty space.
 
-You can also zoom in and zoom out. This is done using the `setScale` method. When given two parameters, the first one is the x-scale, while the second one is the y-scale. If you pass only one parameter, it's used for both x and y. The default scale is 1.0 in both axis.
+You can also zoom in and zoom out. This is done using the `setScale` method. It's got a single parameter, which is used for increasing and decreasing the height and width. The default scale is 1.0.
 
     cam:setScale(2.0) -- make everything twice as bigger. By default, scale is 1 (no change)
 
@@ -93,7 +93,7 @@ img:setFilter('nearest', 'nearest')
 
 > I see "seams" around my tiles when I use this library. Why?
 
-It is due to a combination of factors: how OpenGL textures work, how floating point numbers work and how LÖVE stores texture information in memory. 
+It is due to a combination of factors: how OpenGL textures work, how floating point numbers work and how LÖVE stores texture information in memory.
 
 The end result is that sometimes, when drawing an image, "parts of the area around it" are also drawn. So if you draw a Quad of "earth", and immediately above it in your image you have a "bright lava" tile, when you draw the earth tile sometimes "a bit of the lava" is drawn near the top. If you are using images instead of quads, you can get seams too (either black or from other colors, depending on how the image is stored in memory).
 
