@@ -28,9 +28,9 @@ local function drawWorld(cl,ct,cw,ch)
   for y=minY, maxY do
     for x=minX, maxX do
       if (x + y) % 2 == 0 then
-        love.graphics.setColor(155,155,155)
+        love.graphics.setColor(0.61,0.61,0.61)
       else
-        love.graphics.setColor(200,200,200)
+        love.graphics.setColor(0.78,0.78,0.78)
       end
       love.graphics.rectangle("fill", x*w, y*h, w, h)
     end
@@ -43,7 +43,7 @@ local function updateTarget(dt)
 end
 
 local function drawTarget()
-  love.graphics.setColor(255,255,0)
+  love.graphics.setColor(1,1,0)
   love.graphics.circle("fill", target.x, target.y, 40)
 end
 
@@ -56,7 +56,7 @@ local function updatePlayer(dt)
 end
 
 local function drawPlayer()
-  love.graphics.setColor(0,255,0)
+  love.graphics.setColor(0,1,0)
   love.graphics.rectangle('fill',
                           player.x - player.w / 2,
                           player.y - player.h / 2,
@@ -66,7 +66,7 @@ end
 
 local function drawPlayerMarker()
   local x,y = cam1:toScreen(player.x, player.y);
-  love.graphics.setColor(255,0,0)
+  love.graphics.setColor(1,0,0)
   love.graphics.circle('line', x, y, 30)
 end
 
@@ -83,10 +83,10 @@ local function updateCameras(dt)
 end
 
 local function drawCam1ViewPort()
-  love.graphics.setColor(0,0,255,100)
+  love.graphics.setColor(0,0,1,0.39)
   love.graphics.rectangle('fill', cam1:getVisible())
 
-  love.graphics.setColor(255,255,255, 100)
+  love.graphics.setColor(1,1,1,0.39)
   love.graphics.polygon('fill', cam1:getVisibleCorners())
 end
 
@@ -127,7 +127,7 @@ function love.draw()
 
   drawPlayerMarker()
 
-  love.graphics.setColor(255,255,255)
+  love.graphics.setColor(1,1,1)
   love.graphics.rectangle('line', cam1:getWindow())
   love.graphics.rectangle('line', cam2:getWindow())
 
