@@ -187,6 +187,22 @@ function gamera:draw(f)
   love.graphics.setScissor()
 end
 
+function gamera:attach()
+  love.graphics.setScissor(self:getWindow())
+
+  love.graphics.push()
+    local scale = self.scale
+    love.graphics.scale(scale)
+    love.graphics.translate((self.w2 + self.l) / scale, (self.h2+self.t) / scale)
+    love.graphics.rotate(-self.angle)
+    love.graphics.translate(-self.x, -self.y)
+end
+
+function gamera:detach()
+  love.graphics.pop()
+  love.graphics.setScissor()
+end
+
 function gamera:toWorld(x,y)
   local scale, sin, cos = self.scale, self.sin, self.cos
   x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
