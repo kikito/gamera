@@ -3,7 +3,7 @@ gamera.lua
 
 A camera for [LÖVE](http://love2d.org).
 
-# DIFFERENCE FROM THE ORIGINAL
+# DIFFERENCES FROM THE ORIGINAL
 
 1. Gamera instance checking
 
