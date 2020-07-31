@@ -3,6 +3,31 @@ gamera.lua
 
 A camera for [LÖVE](http://love2d.org).
 
+# DIFFERENCE FROM THE ORIGINAL
+
+1. Gamera instance checking
+
+```lua
+local cam = Gamera.new(0, 0, 640, 480)
+assert(cam.__camera)
+assert(cam:isCamera())
+assert(Gamera.isCamera(cam))
+```
+
+
+2. The following are implemented as other camera libs provide them as an alternative to `Gamera.draw()`:
+
+* `Gamera.attach()`
+* `Gamera.detach()`
+
+So you could do:
+
+```lua
+cam:attach()
+--your draw code
+cam:detach()
+```
+
 Initial setup
 -------------
 
