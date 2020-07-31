@@ -81,7 +81,8 @@ function gamera.new(l,t,w,h)
     x=0, y=0,
     scale=1,
     angle=0, sin=math.sin(0), cos=math.cos(0),
-    l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
+    l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5,
+    __camera = true,
   }, gameraMt)
 
   cam:setWorld(l,t,w,h)
@@ -217,8 +218,9 @@ function gamera:toScreen(x,y)
   return scale * x + self.w2 + self.l, scale * y + self.h2 + self.t
 end
 
+function gamera.isCamera(camera)
+	assert(camera ~= nil, "isCamera requires an argument")
+	return camera.__camera
+end
+
 return gamera
-
-
-
-
