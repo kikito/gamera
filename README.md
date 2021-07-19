@@ -54,6 +54,20 @@ Anything drawn inside the function will be scaled, rotated, translated and cut s
 
 Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees" (same as calling `cam:getVisible()`). They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
 
+NOTE
+----
+
+Passing an anonymous function to `cam:draw` can lead to performance penalties as every draw call a function is created such as with the code snippet above. An alternative would be to create a named function with the parameter signature `(l, t, w, h)` and pass that instead. Example:
+```lua
+local function cam_draw_fn(l, t, w, h)
+  --draw camera stuff here
+end
+
+cam:draw(cam_draw_fn)
+```
+
+* You could use this [fork](https://github.com/flamendless/gamera) which implements `attach` and `detach` functions as another alternative
+
 
 Querying the camera
 -------------------
