@@ -44,13 +44,30 @@ cam:setAngle(newAngle) -- newAngle is in radians, by default the angle is 0
 Drawing
 -------
 
-The camera has one method called "draw". It takes one function as a parameter, like this:
+The camera has one method called "draw". It takes one function as a parameter. Here's one example:
 ``` lua
+local function drawCameraStuff(l,t,w,h)
+  -- draw stuff that will be affected by the camera, for example:
+  drawBackground(l,t,w,h)
+  drawTiles(l,t,w,h)
+  drawEntities(l,t,w,h)
+end
+
+...
+
+-- pass your custom function to cam:draw when you want to draw stuff
+cam:draw(drawCameraStuff)
+```
+
+Alternatively, you could create a custom anonymous function and pass it to `cam:draw`, but in some extreme cases this could have a non-negligible performance impact.
+
+```
 cam:draw(function(l,t,w,h)
   -- draw camera stuff here
 end)
 ```
-Anything drawn inside the function will be scaled, rotated, translated and cut so that it appears as it should in the screen window.
+
+Anything drawn inside the custom function you pass to `cam:draw` be modified by the camera (scaled, rotated, translated and cut) so that it appears as it should in the screen window.
 
 Notice that the function takes 4 optional parameters. These parameters represent the area that the camera "sees" (same as calling `cam:getVisible()`). They can be used to optimize the drawing, and not draw anything outside of those borders. Those borders are always axis-aligned. This means that when the camera is rotated, the area might include elements that are not strictly visible.
 
